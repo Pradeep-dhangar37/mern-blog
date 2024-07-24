@@ -1,18 +1,29 @@
 import express from "express";
 import dotenv from 'dotenv';
 import mongoose from "mongoose";
-import UserRouter from './routes/user.route.js'
-dotenv.config()
-mongoose.connect(process.env.MONGO).then(()=>{
-    console.log("Connected succesfully")
-}).catch((err)=>{
-    console.log(err)
-})
+import UserRoute from './routes/user.route.js';
+import authRoute from './routes/auth.route.js';
+
 const app = express();
-app.listen(3000, ()=>{
-    console.log("Server is runiing on port 3000");
-})
+dotenv.config(); // Load environment variables from .env file
 
-app.use('/api/user',UserRouter )
+// Middleware to parse JSON bodies
+app.use(express.json());
 
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO).then(() => {
+    console.log("Connected successfully to MongoDB");
+}).catch((err) => {
+    console.error("MongoDB connection error:", err);
+    process.exit(1); // Exit process with failure
+});
 
+// Start server
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
+
+// Routes
+app.use('/api/user', UserRoute);
+app.use('/api/auth', authRoute);
