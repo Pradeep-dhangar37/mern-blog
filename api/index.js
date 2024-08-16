@@ -3,28 +3,29 @@ import dotenv from 'dotenv';
 import mongoose from "mongoose";
 import UserRoute from './routes/user.route.js';
 import authRoute from './routes/auth.route.js';
+import cookieParser from "cookie-parser";
 
 const app = express();
-dotenv.config(); // Load environment variables from .env file
+dotenv.config();
 
-// Middleware to parse JSON bodies
 app.use(express.json());
+app.use(cookieParser());
 
-// Connect to MongoDB
+
 mongoose.connect(process.env.MONGO).then(() => {
     console.log("Connected successfully to MongoDB");
 }).catch((err) => {
     console.error("MongoDB connection error:", err);
-    process.exit(1); // Exit process with failure
+    process.exit(1); 
 });
 
-// Start server
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
-// Routes
+
 app.use('/api/user', UserRoute);
 app.use('/api/auth', authRoute);
 
