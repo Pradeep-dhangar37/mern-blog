@@ -5,6 +5,8 @@ import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/
 import { app } from '../firebase';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import { updateStart, updateSuccess, updatFailure } from '../redux/user/userSlice';
+import { useDispatch } from 'react-redux';
 
 export const DashProfile = () => {
   const { currentUser } = useSelector((state) => state.user);
@@ -12,7 +14,9 @@ export const DashProfile = () => {
   const [imageFileUrl, setImageFileUrl] = useState(null);
   const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
+  const[formData,  setFormData] = useState({});
   const filepickerRef = useRef();
+  const dispatch = useDispatch();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -46,16 +50,46 @@ export const DashProfile = () => {
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setImageFileUrl(downloadURL);
+          setFormData({...formData, profilePicture: downloadURL});
           setImageFileUploadProgress(null); // Reset progress
         });
       }
     );
   };
-
+  const handleChange = (e)=>{
+    setFormData({...formData, [e.target.id]: e.target.value});
+  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (Object.keys(formData).length === 0) {
+      return;
+    }
+    try {
+      dispatch(updateStart());
+      
+      const response = await fetch(`api/user/update/${currentUser._id}`, {
+        method: "PUT",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        dispatch(updatFailure(data.message));
+      } else {
+        dispatch(updateSuccess(data));
+      }
+    } catch (err) {
+      dispatch(updatFailure(err.message));
+    }
+  };
+  
   return (
     <div className='max-w-lg mx-auto p-3 w-full'>
       <h1 className='my-7 text-center font-semibold text-3xl'>Profile</h1>
-      <form action="" className='flex flex-col gap-4'>
+      <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
         <input type="file" accept='image/*' onChange={handleImageChange} ref={filepickerRef} hidden />
         <div
           className='relative w-32 h-32 self-center cursor-pointer shadow-md overflow-hidden rounded-full'
@@ -88,9 +122,9 @@ export const DashProfile = () => {
             }`}
           />
         </div>
-        <TextInput type='text' id='username' placeholder='username' defaultValue={currentUser.username} />
-        <TextInput type='email' id='email' placeholder='email' defaultValue={currentUser.email} />
-        <TextInput type='password' id='password' placeholder='password' />
+        <TextInput type='text' id='username' placeholder='username' defaultValue={currentUser.username} onChange={handleChange}/>
+        <TextInput type='email' id='email' placeholder='email' defaultValue={currentUser.email} onChange={handleChange}/>
+        <TextInput type='password' id='password' placeholder='password' onChange={handleChange}/>
         <Button type='submit' gradientDuoTone='purpleToBlue' outline>
           Update
         </Button>
