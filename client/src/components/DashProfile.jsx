@@ -1,4 +1,4 @@
-import { Button, TextInput } from 'flowbite-react';
+import { Alert, Button, TextInput } from 'flowbite-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
@@ -14,6 +14,10 @@ export const DashProfile = () => {
   const [imageFileUrl, setImageFileUrl] = useState(null);
   const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
   const [imageFileUploadError, setImageFileUploadError] = useState(null);
+  const[imageFileUploading, setImageFileUploading] = useState(false);
+  const[updateUserSuccess, setUpdateUserSuccess] = useState(null);
+  const[updateUserError, setUpdateUserError] = useState(null);
+
   const[formData,  setFormData] = useState({});
   const filepickerRef = useRef();
   const dispatch = useDispatch();
@@ -33,6 +37,8 @@ export const DashProfile = () => {
   }, [imageFile]);
 
   const uploadImage = async () => {
+    setImageFileUploading(true);
+    setImageFileUploadError(null);
     const storage = getStorage(app);
     const fileName = new Date().getTime() + imageFile.name;
     const storageRef = ref(storage, fileName);
@@ -46,12 +52,14 @@ export const DashProfile = () => {
       },
       (error) => {
         setImageFileUploadError("Couldn't upload image (File must be less than 2 MB)");
+        setImageFileUploading(false);
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
           setImageFileUrl(downloadURL);
           setFormData({...formData, profilePicture: downloadURL});
-          setImageFileUploadProgress(null); // Reset progress
+          setImageFileUploadProgress(null); 
+          setImageFileUploading(false);
         });
       }
     );
@@ -62,8 +70,13 @@ export const DashProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (Object.keys(formData).length === 0) {
+      setUpdateUserError("No Changes Are Made");
       return;
     }
+      if(imageFileUploading){
+      setUpdateUserError("Please Wait For Image to Upload");
+        return;
+      }
     try {
       dispatch(updateStart());
       
@@ -78,11 +91,14 @@ export const DashProfile = () => {
       const data = await response.json();
       if (!response.ok) {
         dispatch(updatFailure(data.message));
+        setUpdateUserError(data.message);
       } else {
         dispatch(updateSuccess(data));
+        setUpdateUserSuccess("User Profile Updated Succesfully")
       }
     } catch (err) {
       dispatch(updatFailure(err.message));
+      setUpdateUserError(err.message);
     }
   };
   
@@ -133,6 +149,11 @@ export const DashProfile = () => {
         <span className='cursor-pointer'>Delete Account</span>
         <span className='cursor-pointer'>Sign Out</span>
       </div>
+      {updateUserSuccess && (
+        <Alert color='success' className='mt-5'>
+          {updateUserSuccess}
+        </Alert>
+      )}
     </div>
   );
 };
