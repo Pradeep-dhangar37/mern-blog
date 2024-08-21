@@ -7,14 +7,14 @@ export const test = (req, res) => {
 };
 
 export const updateUser = async (req, res, next) => {
-  console.log("Updating user:", req.params.userId);
+  // console.log("Updating user:", req.params.userId);
   
   if (req.user.id !== req.params.userId) {
-    console.log("Unauthorized update attempt by user:", req.user.id);
+    // console.log("Unauthorized update attempt by user:", req.user.id);
     return next(errorHandler(403, 'You are not allowed to update this user'));
   }
 
-  console.log("Request body before update:", req.body);
+  // console.log("Request body before update:", req.body);
 
   try {
     const updatedUser = await User.findByIdAndUpdate(
@@ -30,12 +30,26 @@ export const updateUser = async (req, res, next) => {
       { new: true }
     );
 
-    console.log("User updated successfully:", updatedUser);
+    // console.log("User updated successfully:", updatedUser);
 
     const { password, ...rest } = updatedUser._doc;
     res.status(200).json(rest);
   } catch (error) {
     console.error("Error updating user:", error);
+    next(error);
+  }
+};
+
+            // Delete User
+export const deleteUser = async(req, res, next) =>{
+  if (req.user.id !== req.params.userId) {
+    return next(errorHandler(403, 'You are not allowed to Delete This Account'));
+  }
+  try {
+    const updatedUser = await User.findOneAndDelete(req.params.userId);
+    res.status(200).json("User Has Been Deleted");
+  } catch (error) {
+    // console.error("Error Deleting  user:", error);
     next(error);
   }
 };
