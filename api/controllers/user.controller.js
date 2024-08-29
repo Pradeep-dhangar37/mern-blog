@@ -49,7 +49,15 @@ export const deleteUser = async(req, res, next) =>{
     const updatedUser = await User.findOneAndDelete(req.params.userId);
     res.status(200).json("User Has Been Deleted");
   } catch (error) {
-    // console.error("Error Deleting  user:", error);
+    console.error("Error Deleting  user:", error);
     next(error);
   }
 };
+export const signout = (req, res, next)=>{
+  try{
+    res.clearCookie('access_token').status(200).json("User has been signOut")
+  }
+  catch(err){
+    next(err);
+  }
+}
