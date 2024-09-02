@@ -13,11 +13,12 @@ import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { useNavigate } from 'react-router-dom';
 
-export  function CreatePost() {
+export function CreatePost() {
   const [file, setFile] = useState(null);
   const [imageUploadProgress, setImageUploadProgress] = useState(null);
   const [imageUploadError, setImageUploadError] = useState(null);
   const [formData, setFormData] = useState({});
+  const [content, setContent] = useState(''); // Separate state for ReactQuill content
   const [publishError, setPublishError] = useState(null);
 
   const navigate = useNavigate();
@@ -58,15 +59,20 @@ export  function CreatePost() {
       console.log(error);
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const updatedFormData = { ...formData, content }; // Update formData with the latest content
+
+    console.log("Final Form Data:", updatedFormData); // Debugging to see the final form data
+
     try {
       const res = await fetch('/api/post/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(updatedFormData),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -74,14 +80,12 @@ export  function CreatePost() {
         return;
       }
 
-      if (res.ok) {
-        setPublishError(null);
-        navigate(`/post/${data.slug}`);
-      }
+      navigate(`/post/${data.slug}`);
     } catch (error) {
       setPublishError('Something went wrong');
     }
   };
+
   return (
     <div className='p-3 max-w-3xl mx-auto min-h-screen'>
       <h1 className='text-center text-3xl my-7 font-semibold'>Create a post</h1>
@@ -146,9 +150,10 @@ export  function CreatePost() {
           theme='snow'
           placeholder='Write something...'
           className='h-72 mb-12'
-          required
+          value={content} // Controlled component behavior
           onChange={(value) => {
-            setFormData({ ...formData, content: value });
+            console.log("ReactQuill content:", value); // Log content to ensure it's being captured
+            setContent(value);
           }}
         />
         <Button type='submit' gradientDuoTone='purpleToPink'>
