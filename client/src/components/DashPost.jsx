@@ -30,20 +30,22 @@ export const DashPost = () => {
             fetchPosts();
         }
     }, [currentUser._id])
-    const handleShowMore = async ()=>{
+    const handleShowMore = async () => {
       const startIndex = userPosts.length;
-      try{
-        const res = await fetch(`/api/post/getposts?userId=${currentUser._id}&startIndex=${startIndex}`)
+      try {
+        const res = await fetch(`/api/post/getposts?userId=${currentUser._id}&startIndex=${startIndex}`);
+        const data = await res.json();  // Add this line to fetch data from response
         if (res.ok) {
-          setUserPosts((prev) => [...prev, ...data.posts])
-          if(data.posts.length < 9){
+          setUserPosts((prev) => [...prev, ...data.posts]);
+          if (data.posts.length < 9) {
             setShowMore(false);
           }
         }
-      }catch(err){
+      } catch (err) {
         console.log(err);
       }
-    }
+    };
+   
     const handleDeletePost = async () => {
       setShowModal(false);
       try {
@@ -81,17 +83,34 @@ export const DashPost = () => {
 
           </Table.Head>
           {userPosts.map((post) => (
-            <Table.Body className='divide-y'>
-              <Table.Row className='bg-white dark:border-gray-700 dark:bg-gray-800'>
-                <Table.Cell>{post.updatedAt}</Table.Cell>
-                <Table.Cell><Link to={`post/${post.slug}`}><img className='h-10 w-20 object-cover bg-gray-500'src={post.image}></img></Link></Table.Cell>
-                <Table.Cell>{<Link className='font-medium text-gray-900 dark:text-white' to={`post/${post.slug}`}>{post.title}</Link>}</Table.Cell>
-                <Table.Cell>{post.category}</Table.Cell>
-                <Table.Cell><span className='font-medium text-red-500 hover:underline cursor-pointer' onClick={()=> {setShowModal(true); setPostIdToDelete(post._id) }}>Delete</span></Table.Cell>
-                <Table.Cell><Link className='text-teal-500' to={`/update-post/${post._id}`}><span>Edit</span></Link></Table.Cell>
-              </Table.Row>
-            </Table.Body>
-          ))}
+  <Table.Body key={post._id} className='divide-y'>
+    <Table.Row className='bg-white dark:border-gray-700 dark:bg-gray-800'>
+      <Table.Cell>{post.updatedAt}</Table.Cell>
+      <Table.Cell>
+        <Link to={`post/${post.slug}`}>
+          <img className='h-10 w-20 object-cover bg-gray-500' src={post.image} alt="Post Image" />
+        </Link>
+      </Table.Cell>
+      <Table.Cell>
+        <Link className='font-medium text-gray-900 dark:text-white' to={`post/${post.slug}`}>
+          {post.title}
+        </Link>
+      </Table.Cell>
+      <Table.Cell>{post.category}</Table.Cell>
+      <Table.Cell>
+        <span className='font-medium text-red-500 hover:underline cursor-pointer' onClick={() => {setShowModal(true); setPostIdToDelete(post._id);}}>
+          Delete
+        </span>
+      </Table.Cell>
+      <Table.Cell>
+        <Link className='text-teal-500' to={`/update-post/${post._id}`}>
+          <span>Edit</span>
+        </Link>
+      </Table.Cell>
+    </Table.Row>
+  </Table.Body>
+))}
+
         </Table>
         {
           showMore && (
