@@ -3,7 +3,9 @@ import dotenv from 'dotenv';
 import mongoose from "mongoose";
 import UserRoute from './routes/user.route.js';
 import authRoute from './routes/auth.route.js';
-import postRoute from './routes/post.route.js'
+import postRoute from './routes/post.route.js';
+import commentRoute from './routes/comment.route.js';
+
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -30,6 +32,8 @@ app.listen(port, () => {
 app.use('/api/user', UserRoute);
 app.use('/api/auth', authRoute);
 app.use('/api/post', postRoute);
+app.use('/api/comment', commentRoute);
+
 
 
 app.use((err, req, res, next) =>{
